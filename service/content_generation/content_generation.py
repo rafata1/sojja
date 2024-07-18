@@ -1,4 +1,5 @@
 import asyncio
+import json
 import time
 
 from openai import OpenAI
@@ -88,4 +89,4 @@ class ContentGenerationService:
 def extract_json_from_text(text: str):
     json_start = text.index('{')
     json_end = text.rindex('}')
-    return eval(text[json_start:json_end + 1])
+    return json.loads(text[json_start:json_end + 1])
