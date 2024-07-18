@@ -7,7 +7,7 @@ from model.session import Conversation, OpenAIMessageRole, Session
 from repository.generation_session import SessionRepository
 from bson import ObjectId
 from schema.schema import serialize_session
-from service.content_generation.prompts import INIT_PROMPT, RESPOND_PROMPT
+from service.content_generation.prompts import INIT_PROMPT, RESPOND_PROMPT, ENHANCE_IMAGE_PROMPT
 
 
 class ContentGenerationService:
@@ -71,6 +71,7 @@ class ContentGenerationService:
         return generated_response
 
     def text_to_image(self, prompt):
+        prompt = f"{prompt}. {ENHANCE_IMAGE_PROMPT}"
         print(f"Generating image for prompt: {prompt}")
         response = self.openai_client.images.generate(
             model="dall-e-3",

@@ -25,3 +25,4 @@ Each heading should be followed by a prompt to generate image and at least one p
 at most 3 images in the article.
 Sometimes i see that you return the response not in json format. So that my server cannot parse the response and get 
 error. So that please always return me only the json object with the content filled."""
+ENHANCE_IMAGE_PROMPT = """The image should be realistic, natural looks"""
