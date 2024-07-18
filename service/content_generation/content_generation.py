@@ -1,3 +1,6 @@
+import asyncio
+import time
+
 from openai import OpenAI
 from config import config
 from model.session import Conversation, OpenAIMessageRole, Session
@@ -41,6 +44,7 @@ class ContentGenerationService:
         return serialize_session(updated_session_data)
 
     def respond(self, session_id):
+        start_time = time.time()
         session_id = ObjectId(session_id)
         respond_conversation = Conversation(role=OpenAIMessageRole.USER.value, content=RESPOND_PROMPT)
         self.append_conversation(session_id, respond_conversation)
@@ -54,8 +58,30 @@ class ContentGenerationService:
 
         response_text = response.choices[0].message.content
         extracted_json_response = extract_json_from_text(response_text)
+        extracted_json_response = self.generate_images(extracted_json_response)
         self.session_repository.update_session_generated_response(session_id, extracted_json_response)
+        print(f"Responded in {time.time() - start_time} seconds")
         return extracted_json_response
+
+    def generate_images(self, generated_response):
+        for tag in generated_response["tags"]:
+            if tag["type"] == "image":
+                image_url = self.text_to_image(tag["prompt"])
+                tag["value"] = image_url
+        return generated_response
+
+    def text_to_image(self, prompt):
+        print(f"Generating image for prompt: {prompt}")
+        response = self.openai_client.images.generate(
+            model="dall-e-3",
+            prompt=prompt,
+            size="1024x1024",
+            quality="standard",
+            n=1,
+        )
+        image_url = response.data[0].url
+        print(f"Generated image for prompt: {prompt} with url: {image_url}")
+        return image_url
 
 
 def extract_json_from_text(text: str):
