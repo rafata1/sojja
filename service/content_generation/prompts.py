@@ -21,6 +21,7 @@ json object. The format is as follows:
   ]
 } 
 Please fill the json object with your article content. The length of article should be between 1000 - 2000 words. 
-Each heading should be followed by a prompt to generate image or not and at least one paragraph. There should be
+Each heading should be followed by a prompt to generate image and at least one paragraph. There should be 
 at most 3 images in the article.
-Please return me only the json object with the content filled."""
+Sometimes i see that you return the response not in json format. So that my server cannot parse the response and get 
+error. So that please always return me only the json object with the content filled."""
