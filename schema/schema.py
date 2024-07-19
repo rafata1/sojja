@@ -6,6 +6,7 @@ def serialize_session(session) -> dict:
         "num_images": session.get("num_images", None),
         "num_words": session.get("num_words", None),
         "keywords": session.get("keywords", None),
+        "description": session.get("description", None),
     }
 
 
