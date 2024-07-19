@@ -1,6 +1,7 @@
 INIT_PROMPT = """You are a helpful assistant. You are here to help user to write a SEO friendly article."""
 RESPOND_PROMPT = """Follows these steps to generate the content:
-STEP 1: Write me an article with length of {{NUM_WORDS}} words, which is about the topic: {{TOPIC}}. {{EXTRA_INFO}}
+STEP 1: Write me an article with length of {{NUM_WORDS}} words, which is about the topic: {{TOPIC}}. {{EXTRA_INFO}}. 
+{{DESCRIPTION}}
 STEP 2: You have to fill fill article content into a RFC8259 json object. The format is as follows: 
 {
   "title": "fill the title of the article",

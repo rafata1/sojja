@@ -48,6 +48,7 @@ class ContentGenerationService:
         session_data["num_images"] = req.num_images
         session_data["num_words"] = req.num_words
         session_data["keywords"] = req.keywords
+        session_data["description"] = req.description
 
         self.session_repository.update_session(session_id, session_data)
         updated_session_data = self.session_repository.get_session(session_id)
@@ -62,14 +63,18 @@ class ContentGenerationService:
         num_images = session_data["num_images"]
         num_words = session_data["num_words"]
         keywords = session_data["keywords"]
+        description = session_data["description"]
 
         gen_prompt = RESPOND_PROMPT.replace("{{TOPIC}}", topic)
         gen_prompt = gen_prompt.replace("{{NUM_IMAGES}}", str(num_images))
         gen_prompt = gen_prompt.replace("{{NUM_WORDS}}", str(num_words))
 
         if len(keywords) > 0:
-            extra_info = f"The article should cover list of keywords: {', '.join(keywords)}"
+            extra_info = f"The article should cover list of keywords: {', '.join(keywords)}."
             gen_prompt = gen_prompt.replace("{{EXTRA_INFO}}", extra_info)
+
+        if len(description) > 0:
+            gen_prompt = gen_prompt.replace("{{DESCRIPTION}}", description)
 
         respond_conversation = Conversation(role=OpenAIMessageRole.USER.value, content=gen_prompt)
         self.append_conversation(session_id, respond_conversation)
