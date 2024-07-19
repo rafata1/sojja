@@ -2,4 +2,7 @@ from pydantic import BaseModel
 
 
 class SendMessageRequest(BaseModel):
-    message: str
+    topic: str
+    num_words: int
+    num_images: int
+    keywords: list[str]

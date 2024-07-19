@@ -11,6 +11,11 @@ class SessionRepository:
     def create_session(self, session):
         return self.collection.insert_one(session.model_dump()).inserted_id
 
+    def update_session(self, session_id: ObjectId, session_data):
+        self.collection.update_one({"_id": session_id}, {
+            "$set": session_data,
+        })
+
     def update_conversations(self, session_id: ObjectId, conversations):
         self.collection.update_one({"_id": session_id}, {
             "$set": {

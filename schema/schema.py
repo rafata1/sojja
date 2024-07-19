@@ -1,8 +1,11 @@
 def serialize_session(session) -> dict:
     return {
         "id": str(session["_id"]),
-        "conversations": session["conversations"],
-        "generated_response": session["generated_response"]
+        "generated_response": session.get("generated_response", None),
+        "topic": session.get("topic", None),
+        "num_images": session.get("num_images", None),
+        "num_words": session.get("num_words", None),
+        "keywords": session.get("keywords", None),
     }
 
 

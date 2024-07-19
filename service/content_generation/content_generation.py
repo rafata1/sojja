@@ -8,6 +8,7 @@ from model.session import Conversation, OpenAIMessageRole, Session
 from repository.generation_session import SessionRepository
 from bson import ObjectId
 from schema.schema import serialize_session
+from schema.session import SendMessageRequest
 from service.content_generation.prompts import INIT_PROMPT, RESPOND_PROMPT, ENHANCE_IMAGE_PROMPT
 
 
@@ -37,23 +38,46 @@ class ContentGenerationService:
         conversations.append(conversation.model_dump())
         self.session_repository.update_conversations(session_id, conversations)
 
-    def send_message(self, session_id, message):
+    def send_message(self, session_id, req: SendMessageRequest):
         session_id = ObjectId(session_id)
-        new_conversation = Conversation(role=OpenAIMessageRole.USER.value, content=message)
-        self.append_conversation(session_id, new_conversation)
+        session_data = self.session_repository.get_session(session_id)
+        if not session_data:
+            raise Exception("Session not found")
+
+        session_data["topic"] = req.topic
+        session_data["num_images"] = req.num_images
+        session_data["num_words"] = req.num_words
+        session_data["keywords"] = req.keywords
+
+        self.session_repository.update_session(session_id, session_data)
         updated_session_data = self.session_repository.get_session(session_id)
         return serialize_session(updated_session_data)
 
     def respond(self, session_id):
         start_time = time.time()
         session_id = ObjectId(session_id)
-        respond_conversation = Conversation(role=OpenAIMessageRole.USER.value, content=RESPOND_PROMPT)
+        session_data = self.session_repository.get_session(session_id)
+
+        topic = session_data["topic"]
+        num_images = session_data["num_images"]
+        num_words = session_data["num_words"]
+        keywords = session_data["keywords"]
+
+        gen_prompt = RESPOND_PROMPT.replace("{{TOPIC}}", topic)
+        gen_prompt = gen_prompt.replace("{{NUM_IMAGES}}", str(num_images))
+        gen_prompt = gen_prompt.replace("{{NUM_WORDS}}", str(num_words))
+
+        if len(keywords) > 0:
+            extra_info = f"The article should cover list of keywords: {', '.join(keywords)}"
+            gen_prompt = gen_prompt.replace("{{EXTRA_INFO}}", extra_info)
+
+        respond_conversation = Conversation(role=OpenAIMessageRole.USER.value, content=gen_prompt)
         self.append_conversation(session_id, respond_conversation)
         updated_session_data = self.session_repository.get_session(session_id)
 
         conversations = updated_session_data["conversations"]
         response = self.openai_client.chat.completions.create(
-            model="gpt-3.5-turbo",
+            model="gpt-4o-mini",
             messages=conversations
         )
 

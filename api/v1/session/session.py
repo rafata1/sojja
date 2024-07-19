@@ -21,7 +21,7 @@ def get_session(session_id: str):
 
 @session_router.post("/{session_id}/send-message")
 def send_message(session_id: str, data: SendMessageRequest = Body(...)):
-    data = ContentGenerationService().send_message(session_id, data.message)
+    data = ContentGenerationService().send_message(session_id, data)
     return DataResponse().success(data=data)
 
 
