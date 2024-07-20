@@ -17,3 +17,4 @@ class Conversation(BaseModel):
 class Session(BaseModel):
     conversations: List[Conversation] = []
     generated_response: Optional[dict] = None
+    status: str = "pending"

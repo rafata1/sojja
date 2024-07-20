@@ -32,3 +32,10 @@ class SessionRepository:
                 "generated_response": extracted_json_response,
             },
         })
+
+    def update_status(self, session_id, status):
+        self.collection.update_one({"_id": session_id}, {
+            "$set": {
+                "status": status,
+            },
+        })

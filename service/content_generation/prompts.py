@@ -23,9 +23,11 @@ STEP 2: You have to fill fill article content into a RFC8259 json object. The fo
   ]
 }
 There have to be {{NUM_IMAGES}} image tags in the json object. The image tags should be placed after the heading tags.
-STEP 3: If number of image tags is greater than {{NUM_IMAGES}}, you have to remove the image tags from the end 
+STEP 4: If number of image tags is greater than {{NUM_IMAGES}}, you have to remove the image tags from the end 
 of the json object un til the number of image tags is equal to {{NUM_IMAGES}}.
-STEP 4: After you finish the json object, send it back to me. Do not include any explanations, 
+STEP 5: Check the json object to make sure it is RFC8259 compliant. Make sure all the keys and values are in double 
+quotes. If there is any error, you have to fix it.
+STEP 6: After you finish the json object, send it back to me. Do not include any explanations, 
 only provide a  RFC8259 compliant JSON response.
 """
 ENHANCE_IMAGE_PROMPT = """The image should be realistic, natural looks"""

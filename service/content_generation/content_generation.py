@@ -55,9 +55,11 @@ class ContentGenerationService:
         return serialize_session(updated_session_data)
 
     def respond(self, session_id):
-        start_time = time.time()
         session_id = ObjectId(session_id)
         session_data = self.session_repository.get_session(session_id)
+
+        if session_data.get("status", "pending") != "pending":
+            return serialize_session(session_data)
 
         topic = session_data["topic"]
         num_images = session_data["num_images"]
@@ -88,17 +90,24 @@ class ContentGenerationService:
 
         response_text = response.choices[0].message.content
         extracted_json_response = extract_json_from_text(response_text)
-        extracted_json_response = self.generate_images(extracted_json_response)
+        for tag in extracted_json_response["tags"]:
+            if tag["type"] == "image":
+                tag["value"] = "https://t3.ftcdn.net/jpg/02/48/42/64/360_F_248426448_NVKLywWqArG2ADUxDq6QprtIzsF82dMF.jpg"
         self.session_repository.update_session_generated_response(session_id, extracted_json_response)
-        print(f"Responded in {time.time() - start_time} seconds")
-        return extracted_json_response
+        self.session_repository.update_session(session_id, {"status": "generating_images"})
+        updated = self.session_repository.get_session(session_id)
+        return serialize_session(updated)
 
-    def generate_images(self, generated_response):
+    def generate_images(self, session_id, generated_response):
+        start_time = time.time()
+        print(f"Generating images for {session_id}")
         for tag in generated_response["tags"]:
             if tag["type"] == "image":
                 image_url = self.text_to_image(tag["prompt"])
                 tag["value"] = image_url
-        return generated_response
+        self.session_repository.update_session_generated_response(session_id, generated_response)
+        self.session_repository.update_session(session_id, {"status": "completed"})
+        print(f"Generated images for {session_id} took {time.time() - start_time} seconds")
 
     def text_to_image(self, prompt):
         prompt = f"{prompt}. {ENHANCE_IMAGE_PROMPT}"

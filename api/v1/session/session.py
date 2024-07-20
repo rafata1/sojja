@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Body
+from bson import ObjectId
+from fastapi import APIRouter, Body, BackgroundTasks
 
 from api.common import DataResponse
 from schema.session import SendMessageRequest
@@ -26,6 +27,11 @@ def send_message(session_id: str, data: SendMessageRequest = Body(...)):
 
 
 @session_router.get("/{session_id}/respond")
-def respond(session_id: str):
+async def respond(session_id: str, background_tasks: BackgroundTasks):
     data = ContentGenerationService().respond(session_id)
+    background_tasks.add_task(
+        ContentGenerationService().generate_images,
+        ObjectId(session_id),
+        data["generated_response"],
+    )
     return DataResponse().success(data=data)

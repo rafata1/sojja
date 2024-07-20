@@ -7,6 +7,7 @@ def serialize_session(session) -> dict:
         "num_words": session.get("num_words", None),
         "keywords": session.get("keywords", None),
         "description": session.get("description", None),
+        "status": session.get("status", "pending"),
     }
 
 
