@@ -179,4 +179,9 @@ class ContentGenerationService:
 def extract_json_from_text(text: str):
     json_start = text.index('{')
     json_end = text.rindex('}')
-    return json.loads(text[json_start:json_end + 1])
+    try:
+        json_object = json.loads(text[json_start:json_end + 1])
+    except Exception as e:
+        print(f"Failed to extract json from text: {e} {text}")
+        return {}
+    return json_object
