@@ -1,6 +1,11 @@
-import asyncio
 import json
+import os
 import time
+import uuid
+from io import BytesIO
+
+import requests
+from PIL import Image
 
 from openai import OpenAI
 from config import config
@@ -97,6 +102,19 @@ class ContentGenerationService:
         updated = self.session_repository.get_session(session_id)
         return serialize_session(updated)
 
+    @staticmethod
+    def download_and_compress_image(url):
+        print(f"Downloading and compressing image from {url}")
+        response = requests.get(url)
+        if response.status_code != 200:
+            return url
+        image_data = response.content
+        image = Image.open(BytesIO(image_data))
+        image_name = f"{uuid.uuid4().hex}.png"
+        image.save(os.path.join("./static", image_name), optimize=True, quality=50)
+        print(f"Downloaded and compressed image to {image_name}")
+        return f"https://sojja.davecao.com/static/{image_name}"
+
     def generate_images(self, session_id, generated_response):
         start_time = time.time()
         print(f"Generating images for {session_id}")
@@ -106,8 +124,12 @@ class ContentGenerationService:
             if tag["type"] == "image":
                 image_url = self.text_to_image(tag["prompt"])
                 if image_url:
-                    tag["value"] = image_url
-                    self.session_repository.update_session_generated_response(session_id, generated_response)
+                    compressed_image_url = self.download_and_compress_image(image_url)
+                    tag["value"] = compressed_image_url
+                    tag["status"] = "completed"
+                else:
+                    tag["status"] = "failed"
+                self.session_repository.update_session_generated_response(session_id, generated_response)
         self.session_repository.update_session(session_id, {"status": "completed"})
         print(f"Generated images for {session_id} took {time.time() - start_time} seconds")
 
@@ -128,6 +150,7 @@ class ContentGenerationService:
         for tag in filtered_tags:
             if tag["type"] == "image":
                 tag["value"] = self.place_holder
+                tag["status"] = "generating"
         generated_response["tags"] = filtered_tags
         return generated_response
 
