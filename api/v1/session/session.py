@@ -29,9 +29,10 @@ def send_message(session_id: str, data: SendMessageRequest = Body(...)):
 @session_router.get("/{session_id}/respond")
 async def respond(session_id: str, background_tasks: BackgroundTasks):
     data = ContentGenerationService().respond(session_id)
-    background_tasks.add_task(
-        ContentGenerationService().generate_images,
-        ObjectId(session_id),
-        data["generated_response"],
-    )
+    if data["status"] == "need_generate_images":
+        background_tasks.add_task(
+            ContentGenerationService().generate_images,
+            ObjectId(session_id),
+            data["generated_response"],
+        )
     return DataResponse().success(data=data)

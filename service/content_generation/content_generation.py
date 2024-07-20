@@ -90,38 +90,67 @@ class ContentGenerationService:
 
         response_text = response.choices[0].message.content
         extracted_json_response = extract_json_from_text(response_text)
-        for tag in extracted_json_response["tags"]:
-            if tag["type"] == "image":
-                tag["value"] = "https://t3.ftcdn.net/jpg/02/48/42/64/360_F_248426448_NVKLywWqArG2ADUxDq6QprtIzsF82dMF.jpg"
-        self.session_repository.update_session_generated_response(session_id, extracted_json_response)
-        self.session_repository.update_session(session_id, {"status": "generating_images"})
+        generated_response = self.pre_process_images(extracted_json_response, num_images)
+
+        self.session_repository.update_session_generated_response(session_id, generated_response)
+        self.session_repository.update_status(session_id, "need_generate_images")
         updated = self.session_repository.get_session(session_id)
         return serialize_session(updated)
 
     def generate_images(self, session_id, generated_response):
         start_time = time.time()
         print(f"Generating images for {session_id}")
-        for tag in generated_response["tags"]:
+        self.session_repository.update_status(session_id, "generating_images")
+        tags = generated_response["tags"]
+        for tag in tags:
             if tag["type"] == "image":
                 image_url = self.text_to_image(tag["prompt"])
-                tag["value"] = image_url
-        self.session_repository.update_session_generated_response(session_id, generated_response)
+                if image_url:
+                    tag["value"] = image_url
+                    self.session_repository.update_session_generated_response(session_id, generated_response)
         self.session_repository.update_session(session_id, {"status": "completed"})
         print(f"Generated images for {session_id} took {time.time() - start_time} seconds")
+
+    place_holder = "https://t3.ftcdn.net/jpg/02/48/42/64/360_F_248426448_NVKLywWqArG2ADUxDq6QprtIzsF82dMF.jpg"
+
+    def pre_process_images(self, generated_response, num_images):
+        filtered_tags = []
+        tags = generated_response["tags"]
+        left_images = num_images
+        for tag in tags:
+            if tag["type"] != "image":
+                filtered_tags.append(tag)
+                continue
+            if left_images > 0:
+                filtered_tags.append(tag)
+                left_images -= 1
+
+        for tag in filtered_tags:
+            if tag["type"] == "image":
+                tag["value"] = self.place_holder
+        generated_response["tags"] = filtered_tags
+        return generated_response
 
     def text_to_image(self, prompt):
         prompt = f"{prompt}. {ENHANCE_IMAGE_PROMPT}"
         print(f"Generating image for prompt: {prompt}")
-        response = self.openai_client.images.generate(
-            model="dall-e-3",
-            prompt=prompt,
-            size="1024x1024",
-            quality="standard",
-            n=1,
-        )
-        image_url = response.data[0].url
-        print(f"Generated image for prompt: {prompt} with url: {image_url}")
-        return image_url
+        try:
+            response = self.openai_client.images.generate(
+                model="dall-e-3",
+                prompt=prompt,
+                size="1024x1024",
+                quality="standard",
+                n=1,
+            )
+            if not response.created:
+                print(f"Failed to generate image for prompt: {prompt} {response}")
+                return None
+            image_url = response.data[0].url
+            print(f"Generated image for prompt: {prompt} with url: {image_url}")
+            return image_url
+        except Exception as e:
+            print(f"Failed to generate image for prompt: {prompt} with error: {e}")
+            return None
 
 
 def extract_json_from_text(text: str):
