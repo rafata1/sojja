@@ -175,6 +175,13 @@ class ContentGenerationService:
             print(f"Failed to generate image for prompt: {prompt} with error: {e}")
             return None
 
+    def text_to_image_with_compression(self, text: str):
+        image_url = self.text_to_image(text)
+        if not image_url:
+            return None
+        compressed_image_url = self.download_and_compress_image(image_url)
+        return {"original": image_url, "compressed": compressed_image_url}
+
 
 def extract_json_from_text(text: str):
     json_start = text.index('{')

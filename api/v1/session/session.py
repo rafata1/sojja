@@ -36,3 +36,11 @@ async def respond(session_id: str, background_tasks: BackgroundTasks):
             data["generated_response"],
         )
     return DataResponse().success(data=data)
+
+
+@session_router.post("/text-to-image")
+def text_to_image(
+        text: str = Body(...)
+):
+    data = ContentGenerationService().text_to_image_with_compression(text)
+    return DataResponse().success(data=data)
