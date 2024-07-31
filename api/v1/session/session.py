@@ -2,7 +2,7 @@ from bson import ObjectId
 from fastapi import APIRouter, Body, BackgroundTasks
 
 from api.common import DataResponse
-from schema.session import SendMessageRequest, TextToImageRequest
+from schema.session import SendMessageRequest, TextToImageRequest, GenerateParagraphRequest
 from service.content_generation.content_generation import ContentGenerationService
 
 session_router = APIRouter()
@@ -43,4 +43,12 @@ def text_to_image(
         data: TextToImageRequest = Body(...)
 ):
     data = ContentGenerationService().text_to_image_with_compression(data.prompt)
+    return DataResponse().success(data=data)
+
+
+@session_router.post("/gen-paragraph")
+def gen_paragraph(
+        data: GenerateParagraphRequest = Body(...)
+):
+    data = ContentGenerationService().gen_paragraph(data)
     return DataResponse().success(data=data)

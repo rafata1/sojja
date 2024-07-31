@@ -13,8 +13,8 @@ from model.session import Conversation, OpenAIMessageRole, Session
 from repository.generation_session import SessionRepository
 from bson import ObjectId
 from schema.schema import serialize_session
-from schema.session import SendMessageRequest
-from service.content_generation.prompts import INIT_PROMPT, RESPOND_PROMPT, ENHANCE_IMAGE_PROMPT
+from schema.session import SendMessageRequest, GenerateParagraphRequest
+from service.content_generation.prompts import INIT_PROMPT, RESPOND_PROMPT, ENHANCE_IMAGE_PROMPT, GEN_PARAGRAPH_PROMPT
 
 
 class ContentGenerationService:
@@ -181,6 +181,22 @@ class ContentGenerationService:
             return None
         compressed_image_url = self.download_and_compress_image(image_url)
         return {"original": image_url, "compressed": compressed_image_url}
+
+    def gen_paragraph(self, data: GenerateParagraphRequest):
+        if not data.num_words:
+            data.num_words = 200
+
+        gen_prompt = GEN_PARAGRAPH_PROMPT.replace("{{NUM_WORDS}}", str(data.num_words))
+        gen_prompt = gen_prompt.replace("{{KEYWORDS}}", ', '.join(data.keywords))
+        gen_prompt = gen_prompt.replace("{{PREVIOUS_PARAGRAPH}}", data.previous_paragraph)
+        gen_prompt = gen_prompt.replace("{{DESCRIPTION}}", data.prompt)
+
+        response = self.openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": gen_prompt}]
+        )
+        response_text = response.choices[0].message.content
+        return {"paragraph": response_text}
 
 
 def extract_json_from_text(text: str):

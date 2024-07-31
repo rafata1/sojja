@@ -13,3 +13,10 @@ class SendMessageRequest(BaseModel):
 
 class TextToImageRequest(BaseModel):
     prompt: str
+
+
+class GenerateParagraphRequest(BaseModel):
+    prompt: str
+    keywords: list[str]
+    num_words: int
+    previous_paragraph: Optional[str] = None

@@ -29,3 +29,9 @@ STEP 4: After you finish the json object, send it back to me. Do not include any
 only provide a  RFC8259 compliant JSON response.
 """
 ENHANCE_IMAGE_PROMPT = """The image should be realistic, natural looks"""
+
+GEN_PARAGRAPH_PROMPT = """Rewrite the following paragraph in your own words. 
+The paragraph should be about {{NUM_WORDS}} words long and contains the following keywords: {{KEYWORDS}}.
+Here is the previous paragraph: {{PREVIOUS_PARAGRAPH}}.
+Here is the extra description to write new paragraph: {{DESCRIPTION}}. 
+"""
