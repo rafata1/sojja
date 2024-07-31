@@ -2,7 +2,7 @@ from bson import ObjectId
 from fastapi import APIRouter, Body, BackgroundTasks
 
 from api.common import DataResponse
-from schema.session import SendMessageRequest
+from schema.session import SendMessageRequest, TextToImageRequest
 from service.content_generation.content_generation import ContentGenerationService
 
 session_router = APIRouter()
@@ -40,7 +40,7 @@ async def respond(session_id: str, background_tasks: BackgroundTasks):
 
 @session_router.post("/text-to-image")
 def text_to_image(
-        text: str = Body(...)
+        data: TextToImageRequest = Body(...)
 ):
-    data = ContentGenerationService().text_to_image_with_compression(text)
+    data = ContentGenerationService().text_to_image_with_compression(data.prompt)
     return DataResponse().success(data=data)
