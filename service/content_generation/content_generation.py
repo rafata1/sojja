@@ -202,7 +202,7 @@ class ContentGenerationService:
         response_text = response.choices[0].message.content
         return {"paragraph": response_text}
 
-    def gen_blog(self, data: GenBlogRequest):
+    def gen_blog(self, data: GenBlogRequest, sub):
         gen_prompt = GEN_BLOG_PROMPT.replace("{{DESCRIPTION}}", data.prompt)
         response = self.openai_client.chat.completions.create(
             model="gpt-4o-mini",
@@ -229,7 +229,8 @@ class ContentGenerationService:
                 "description": data.prompt,
                 "content": content_string,
             },
-            "user_id": 1
+            "user_id": 1,
+            "sub": sub
         }
 
         inserted_id = self.post_repository.create_post_dict(blog)

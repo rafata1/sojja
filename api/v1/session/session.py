@@ -60,9 +60,11 @@ def gen_paragraph(
 
 @session_router.post("/gen-blog")
 def gen_blog(
-        data: GenBlogRequest = Body(...)
+        data: GenBlogRequest = Body(...),
+        authorization: Optional[str] = Header(...)
 ):
-    data = ContentGenerationService().gen_blog(data)
+    sub = get_sub_from_jwt_token(authorization)
+    data = ContentGenerationService().gen_blog(data, sub)
     return DataResponse().success(data=data)
 
 
