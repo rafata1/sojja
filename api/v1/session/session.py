@@ -105,11 +105,6 @@ async def proxy_request(request: Request, body: ProxyRequestBody):
         target_url = target_url.replace("YOUR_RELATED_KEYWORDS", related_keywords)
         response = requests.post(target_url, json=body.dict(), headers=headers)
 
-        # Return the response from the target URL
-        return {
-            "status_code": response.status_code,
-            "headers": dict(response.headers),
-            "body": response.json() if response.headers.get("Content-Type") == "application/json" else response.text
-        }
+        return response.json() if response.headers.get("Content-Type") == "application/json" else response.text
     except requests.RequestException as e:
         raise HTTPException(status_code=500, detail=str(e))
