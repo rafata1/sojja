@@ -1,7 +1,9 @@
+import requests
 from typing import Optional
 
 from bson import ObjectId
-from fastapi import APIRouter, Body, BackgroundTasks, Header
+from fastapi import APIRouter, Body, BackgroundTasks, Header, Request, HTTPException
+from pydantic import BaseModel
 
 from api.common import DataResponse
 from api.v1.post.post import get_sub_from_jwt_token
@@ -74,3 +76,40 @@ def gen_ideas(
 ):
     data = ContentGenerationService().gen_ideas(data)
     return DataResponse().success(data=data)
+
+
+TARGET_URL = "https://api.seoreviewtools.com/v5-1/seo-content-optimization/?content=1&keyword=YOUR_KEYWORD&relatedkeywords=YOUR_RELATED_KEYWORDS&key=783435=54609743589-32587"
+
+
+class ContentInput(BaseModel):
+    title_tag: str
+    meta_description: str
+    body_content: str
+    keyword: str
+    related_keywords: Optional[str] = ""
+
+
+class ProxyRequestBody(BaseModel):
+    content_input: ContentInput
+
+
+@session_router.post("/seo-proxy")
+async def proxy_request(request: Request, body: ProxyRequestBody):
+    try:
+        # Forward the request to the target URL
+        headers = {"Content-Type": "application/json"}
+        keyword = body.content_input.keyword
+        related_keywords = body.content_input.related_keywords
+
+        target_url = TARGET_URL.replace("YOUR_KEYWORD", keyword)
+        target_url = target_url.replace("YOUR_RELATED_KEYWORDS", related_keywords)
+        response = requests.post(target_url, json=body.dict(), headers=headers)
+
+        # Return the response from the target URL
+        return {
+            "status_code": response.status_code,
+            "headers": dict(response.headers),
+            "body": response.json() if response.headers.get("Content-Type") == "application/json" else response.text
+        }
+    except requests.RequestException as e:
+        raise HTTPException(status_code=500, detail=str(e))
