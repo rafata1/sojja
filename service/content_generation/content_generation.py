@@ -219,13 +219,15 @@ class ContentGenerationService:
                 content.append({"type": "heading2", "children": [{"text": tag["value"]}]})
             if tag["type"] == "paragraph":
                 content.append({"type": "paragraph", "children": [{"text": tag["value"]}]})
+
+        content_string = json.dumps(content, indent=2)
         blog = {
             "json_content": {
                 "title": data.prompt,
                 "slug": data.prompt.replace(" ", "-"),
                 "author": "Dave Cao",
                 "description": data.prompt,
-                "content": str(content),
+                "content": content_string,
             },
             "user_id": 1
         }
