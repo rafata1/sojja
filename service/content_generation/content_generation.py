@@ -12,14 +12,18 @@ from config import config
 from model.session import Conversation, OpenAIMessageRole, Session
 from repository.generation_session import SessionRepository
 from bson import ObjectId
-from schema.schema import serialize_session
-from schema.session import SendMessageRequest, GenerateParagraphRequest
-from service.content_generation.prompts import INIT_PROMPT, RESPOND_PROMPT, ENHANCE_IMAGE_PROMPT, GEN_PARAGRAPH_PROMPT
+
+from repository.post import PostRepository
+from schema.schema import serialize_session, serialize_post
+from schema.session import SendMessageRequest, GenerateParagraphRequest, GenBlogRequest
+from service.content_generation.prompts import INIT_PROMPT, RESPOND_PROMPT, ENHANCE_IMAGE_PROMPT, GEN_PARAGRAPH_PROMPT, \
+    GEN_BLOG_PROMPT
 
 
 class ContentGenerationService:
     def __init__(self):
         self.session_repository = SessionRepository()
+        self.post_repository = PostRepository()
         self.openai_client = OpenAI(api_key=config.OPENAI_API_KEY)
 
     def create_session(self):
@@ -197,6 +201,38 @@ class ContentGenerationService:
         )
         response_text = response.choices[0].message.content
         return {"paragraph": response_text}
+
+    def gen_blog(self, data: GenBlogRequest):
+        gen_prompt = GEN_BLOG_PROMPT.replace("{{DESCRIPTION}}", data.prompt)
+        response = self.openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": gen_prompt}]
+        )
+
+        response_text = response.choices[0].message.content
+        extracted_json_response = extract_json_from_text(response_text)
+
+        content = [{"type": "heading1", "children": [{"text": extracted_json_response["title"]}]},
+                   {"type": "paragraph", "children": [{"text": extracted_json_response["introduction"]}]}]
+        for tag in extracted_json_response["tags"]:
+            if tag["type"] == "h2" or tag["type"] == "h3":
+                content.append({"type": "heading2", "children": [{"text": tag["value"]}]})
+            if tag["type"] == "paragraph":
+                content.append({"type": "paragraph", "children": [{"text": tag["value"]}]})
+        blog = {
+            "json_content": {
+                "title": data.prompt,
+                "slug": data.prompt.replace(" ", "-"),
+                "author": "Dave Cao",
+                "description": data.prompt,
+                "content": content,
+            },
+            "user_id": 1
+        }
+
+        inserted_id = self.post_repository.create_post_dict(blog)
+        post_data = self.post_repository.get_post(inserted_id)
+        return serialize_post(post_data)
 
 
 def extract_json_from_text(text: str):

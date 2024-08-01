@@ -20,3 +20,7 @@ class GenerateParagraphRequest(BaseModel):
     keywords: list[str]
     num_words: int
     previous_paragraph: Optional[str] = None
+
+
+class GenBlogRequest(BaseModel):
+    prompt: str

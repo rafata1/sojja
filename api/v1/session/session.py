@@ -2,7 +2,7 @@ from bson import ObjectId
 from fastapi import APIRouter, Body, BackgroundTasks
 
 from api.common import DataResponse
-from schema.session import SendMessageRequest, TextToImageRequest, GenerateParagraphRequest
+from schema.session import SendMessageRequest, TextToImageRequest, GenerateParagraphRequest, GenBlogRequest
 from service.content_generation.content_generation import ContentGenerationService
 
 session_router = APIRouter()
@@ -51,4 +51,12 @@ def gen_paragraph(
         data: GenerateParagraphRequest = Body(...)
 ):
     data = ContentGenerationService().gen_paragraph(data)
+    return DataResponse().success(data=data)
+
+
+@session_router.post("/gen-blog")
+def gen_blog(
+        data: GenBlogRequest = Body(...)
+):
+    data = ContentGenerationService().gen_blog(data)
     return DataResponse().success(data=data)

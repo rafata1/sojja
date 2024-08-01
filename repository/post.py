@@ -8,6 +8,9 @@ class PostRepository:
     def create_post(self, post):
         return self.collection.insert_one(post.model_dump()).inserted_id
 
+    def create_post_dict(self, post):
+        return self.collection.insert_one(post).inserted_id
+
     def get_post(self, post_id):
         return self.collection.find_one({"_id": post_id})
 
