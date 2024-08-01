@@ -225,7 +225,7 @@ class ContentGenerationService:
                 "slug": data.prompt.replace(" ", "-"),
                 "author": "Dave Cao",
                 "description": data.prompt,
-                "content": content,
+                "content": str(content),
             },
             "user_id": 1
         }
