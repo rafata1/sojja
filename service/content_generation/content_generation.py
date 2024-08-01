@@ -236,6 +236,18 @@ class ContentGenerationService:
         post_data = self.post_repository.get_post(inserted_id)
         return serialize_post(post_data)
 
+    def gen_ideas(self, data):
+        prompt = """Using list of keywords: {{KEYWORDS}}. Give me some topics to write SEO. Return in json format.
+        Example {"topics": [topic1, topic2]}"""
+        prompt = prompt.replace("{{KEYWORDS}}", ', '.join(data.keywords))
+        response = self.openai_client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[{"role": "user", "content": prompt}]
+        )
+        response_text = response.choices[0].message.content
+        extracted_json_response = extract_json_from_text(response_text)
+        return extracted_json_response
+
 
 def extract_json_from_text(text: str):
     json_start = text.index('{')

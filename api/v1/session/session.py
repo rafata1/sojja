@@ -1,8 +1,12 @@
+from typing import Optional
+
 from bson import ObjectId
-from fastapi import APIRouter, Body, BackgroundTasks
+from fastapi import APIRouter, Body, BackgroundTasks, Header
 
 from api.common import DataResponse
-from schema.session import SendMessageRequest, TextToImageRequest, GenerateParagraphRequest, GenBlogRequest
+from api.v1.post.post import get_sub_from_jwt_token
+from schema.session import SendMessageRequest, TextToImageRequest, GenerateParagraphRequest, GenBlogRequest, \
+    GenTopicsRequest
 from service.content_generation.content_generation import ContentGenerationService
 
 session_router = APIRouter()
@@ -59,4 +63,12 @@ def gen_blog(
         data: GenBlogRequest = Body(...)
 ):
     data = ContentGenerationService().gen_blog(data)
+    return DataResponse().success(data=data)
+
+
+@session_router.post("/gen-topics")
+def gen_ideas(
+        data: GenTopicsRequest = Body(...)
+):
+    data = ContentGenerationService().gen_ideas(data)
     return DataResponse().success(data=data)

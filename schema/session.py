@@ -24,3 +24,7 @@ class GenerateParagraphRequest(BaseModel):
 
 class GenBlogRequest(BaseModel):
     prompt: str
+
+
+class GenTopicsRequest(BaseModel):
+    keywords: Optional[list[str]] = None
