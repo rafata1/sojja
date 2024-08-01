@@ -14,8 +14,8 @@ class PostService:
         post_data = self.post_repository.get_post(inserted_id)
         return serialize_post(post_data)
 
-    def list(self, user_id: int):
-        list_data = self.post_repository.list_by_user_id(user_id)
+    def list(self, user_id: int, sub):
+        list_data = self.post_repository.list_by_user_id(user_id, sub)
         return serial_list_posts(list_data)
 
     def get(self, post_id: str):

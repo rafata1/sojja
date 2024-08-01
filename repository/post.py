@@ -14,8 +14,8 @@ class PostRepository:
     def get_post(self, post_id):
         return self.collection.find_one({"_id": post_id})
 
-    def list_by_user_id(self, user_id):
-        return self.collection.find({"user_id": user_id})
+    def list_by_user_id(self, user_id, sub):
+        return self.collection.find({"sub": sub})
 
     def delete_post(self, post_id):
         return self.collection.delete_one({"_id": post_id})

@@ -14,9 +14,17 @@ def serialize_session(session) -> dict:
 def serialize_post(post) -> dict:
     return {
         "id": str(post["_id"]),
+        "stt": post.get("stt", 100),
         "json_content": post["json_content"],
     }
 
 
 def serial_list_posts(posts) -> list:
-    return [serialize_post(post) for post in posts]
+    stt = 0
+    result = []
+    for post in posts:
+        stt += 1
+        post["stt"] = stt
+        result.append(serialize_post(post))
+    result.reverse()
+    return result
